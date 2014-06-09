@@ -1,0 +1,19 @@
+<h1> Haskell Chat ##{cName}
+
+<div .row>
+  <div .col-md-8>
+    <div .panel .panel-default>
+      <div .panel-heading>
+        <h3 .panel-title>Chat
+      <div #chatBody .panel-body>
+  <div .col-md-4>
+    <div .panel .panel-default>
+      <div .panel-heading>
+        <h3 .panel-title>Users
+      <div .panel-body>
+        <ul #users .list-unstyled>
+<div .row>
+  <div .col-md-12>
+    <form #messageForm method=post action=@{ChatR cName} enctype=#{enctype} .form-inline>
+      ^{widget}
+      <button type="submit" .btn.btn-primary>Send

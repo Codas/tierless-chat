@@ -1,0 +1,64 @@
+(function() {
+  var url = document.URL,
+      chatBody = document.getElementById("chatBody"),
+      usersList = document.getElementById("users"),
+      form = document.getElementById("messageForm"),
+      input = document.getElementById("hident2"),
+      conn;
+
+  url = url.replace("http:", "ws:").replace("https:", "wss:");
+  conn = new WebSocket(url);
+
+  conn.onmessage = function(e) {
+    console.log(e.data);
+    var str = e.data.trim().split(/\r\n|\r|\n/)
+      , name
+      , div
+      , strong
+      , em
+      , content
+      , usersFragment
+      , li;
+    if (str[0] == "message") {
+      div = document.createElement("div")
+      strong = document.createElement("strong")
+      content = str[2];
+      name = str[1]
+      strong.appendChild(document.createTextNode(name + ": "))
+      div.appendChild(strong)
+      div.appendChild(document.createTextNode(content))
+      chatBody.appendChild(div)
+    } else if (str[0] == "broadcast") {
+      content = str[1]
+      div = document.createElement("div")
+      em = document.createElement("em")
+      em.appendChild(document.createTextNode(content))
+      div.appendChild(em)
+      chatBody.appendChild(div)
+    } else if (str[0] == "users") {
+      usersFragment = document.createDocumentFragment()
+      for(i = 1; i < str.length; i+=1) {
+        name = str[i];
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode(name));
+        usersFragment.appendChild(li);
+      }
+      while (usersList.firstChild) {
+        usersList.removeChild(usersList.firstChild);
+      }
+      usersList.appendChild(usersFragment);
+    }
+  };
+
+  window.onbeforeunload = function() {
+    conn.onclose = function () {}; // disable onclose handler first
+    conn.close();
+    console.log("closed")
+  };
+
+  form.addEventListener("submit", function(e){
+    conn.send(input.value);
+    input.value = "";
+    e.preventDefault();
+  });
+})();
