@@ -27,7 +27,7 @@ chatSocket c = do app <- getYesod
                   name <- receiveData
                   sendTextData $ T.append "broadcast\n" $ ("Welcome, " :: Text) <> name
                   let eEvt uf msg = do rooms <- readTVar $ chatRooms app
-                                       let rc = chatRoomNotifier app
+                                       let rc = broadcast app
                                        rooms' <- uf name c rooms
                                        (room, _) <- chatRoom c rooms'
                                        mc <- dupTChan $ channel room

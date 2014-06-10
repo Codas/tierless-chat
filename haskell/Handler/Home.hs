@@ -17,7 +17,7 @@ channelForm = renderBootstrap3 BootstrapInlineForm $ ChannelName
 
 createNewRoom :: Text -> App -> STM ChatRooms
 createNewRoom c app = do let roomTVar = chatRooms app
-                             crn = chatRoomNotifier app
+                             crn = broadcast app
                          newRooms <- do rooms <- readTVar roomTVar
                                         addChatRoom c rooms
                          do writeTVar roomTVar newRooms
@@ -36,7 +36,7 @@ getHomeR = do webSockets homeSocket
 
 homeSocket :: WebSocketsT Handler ()
 homeSocket = do app <- getYesod
-                let chanListChan = chatRoomNotifier app
+                let chanListChan = broadcast app
                 readChan <- atm $ dupTChan chanListChan
                 race_
                   (forever $ atm (readTChan readChan) >>= sendTextData)
