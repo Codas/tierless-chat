@@ -15,18 +15,9 @@ channelForm :: Html -> MForm Handler (FormResult ChannelName, Widget)
 channelForm = renderBootstrap3 BootstrapInlineForm $ ChannelName
     <$> areq textField (withPlaceholder "Room Name" $ bfs ("Room Name" :: Text)) Nothing
 
-createNewRoom :: Text -> App -> STM ChatRooms
-createNewRoom c app = do let roomTVar = chatRooms app
-                             crn = broadcast app
-                         newRooms <- do rooms <- readTVar roomTVar
-                                        addChatRoom c rooms
-                         do writeTVar roomTVar newRooms
-                            writeTChan crn $ roomsToText newRooms
-                         return newRooms
-
 getHomeR :: Handler Html
-getHomeR = do webSockets homeSocket
-              app <- getYesod
+getHomeR = do app <- getYesod
+              webSockets (homeSocket app)
               (widget, enctype) <- generateFormPost channelForm
               rooms <- atm $ readTVar $ chatRooms app
               let roomInformation = M.toAscList $ channelInformation rooms
@@ -34,10 +25,20 @@ getHomeR = do webSockets homeSocket
                                  $(widgetFile "home")
 
 
-homeSocket :: WebSocketsT Handler ()
-homeSocket = do app <- getYesod
-                let chanListChan = broadcast app
-                readChan <- atm $ dupTChan chanListChan
-                race_
-                  (forever $ atm (readTChan readChan) >>= sendTextData)
-                  (sourceWS $$ mapM_C (\chan -> void $ atm $ createNewRoom chan app))
+homeSocket :: App -> WebSocketsT Handler ()
+homeSocket app = do
+    readChan <- atm $ dupTChan (broadcast app)
+    race_ -- execute both, exit when one finishes
+      (forever $
+        atm (readTChan readChan) >>= sendTextData)
+      (sourceWS $$ mapM_C createNew)
+  where createNew :: MonadIO m => Text -> m ()
+        createNew c = atm (newRoom c)
+        newRoom :: Text -> STM ()
+        newRoom c = do
+            let chan = broadcast app
+                room = chatRooms app
+            rooms' <- do rooms <- readTVar room
+                         addChatRoom c rooms
+            writeTVar room rooms' -- update
+            writeTChan chan (roomsToText rooms')

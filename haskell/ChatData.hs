@@ -46,7 +46,9 @@ newChatRoom = do c <- newBroadcastTChan
 
 addChatRoom :: Text -> ChatRooms -> STM ChatRooms
 addChatRoom c cs = do channel' <- newChatRoom
-                      return $ M.insert c channel' cs
+                      return $ if hasChannel c cs
+                                  then cs
+                                  else M.insert c channel' cs
 
 chatRoom :: Text -> ChatRooms -> STM (ChatRoom, ChatRooms)
 chatRoom c cs = if hasChannel c cs
