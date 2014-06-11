@@ -1,13 +1,98 @@
 <head>
-  <title>meteor</title>
+    <title>meteor</title>
 </head>
 
 <body>
-  {{> hello}}
 </body>
 
-<template name="hello">
-  <h1>Hello World!</h1>
-  {{greeting}}
-  <input type="button" value="Click" />
+<template name="layout">
+    <div class="container">
+        {{> yield}}
+    </div>
+</template>
+
+<template name="home">
+    <h1>Meteor Chat</h1>
+    <p>
+        <strong>Currently available chat rooms:</strong>
+    </p>
+    {{#if not rooms}}
+        <p>No rooms currently available</p>
+    {{/if}}
+    <ul>
+        {{#each rooms}}
+            <li>
+                <a href="/chat/{{name}}">{{name}}</a>
+                ({{userCount name}} currently subscribed users)
+            </li>
+        {{/each}}
+    </ul>
+    <form class="form-inline">
+        <div class="form-group">
+            <input type="text" required placeholder="Room Name" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Create room</button>
+    </form>
+</template>
+
+<template name="chatRoom">
+    <h1>Meteor Chat #{{room}}</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Chat</h3>
+                </div>
+                <div id="chatBody" class="panel-body">
+                    <div>
+                        <em>Welcome to the chat server, please enter your name.</em>
+                    </div>
+                    {{#each messages}}
+                      {{>message}}
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Users</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-unstyled">
+                        {{#each users}}
+                          {{> user}}
+                        {{/each}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <form class="form-inline">
+                <div class="form-group">
+                    <input type="text" required placeholder="Send message" class="form-control" value="{{msg}}">
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    </div>
+</template>
+
+<template name="user">
+    <li>{{name}}</li>
+</template>
+
+<template name="message">
+    <div>
+        {{#if broadcast}}
+        <em>{{content}}</em>
+        {{else}}
+        <strong>{{user}}:</strong>
+        {{content}}
+        {{/if}}
+    </div>
 </template>
