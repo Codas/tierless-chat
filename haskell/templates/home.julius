@@ -1,41 +1,46 @@
 (function() {
   var url = document.URL,
-      channelList = document.getElementById("channelList"),
-      form = document.getElementById("channelForm"),
-      input = document.getElementById("hident2"),
+      rooms   = document.getElementById("rooms"),
+      form    = document.getElementById("cForm"),
+      input   = document.getElementById("hident2"),
+      noRooms = document.createElement("p"),
+      nrText  = "No rooms currently available",
       conn;
 
+  nrText = document.createTextNode(nrText),
   url = url.replace("http:", "ws:").replace("https:", "wss:");
   conn = new WebSocket(url);
+  noRooms.id = "noRooms";
+  noRooms.appendChild(nrText);
+
 
   conn.onmessage = function(e) {
-    var str = e.data.trim().split(/\r\n|\r|\n/)
+    var data = e.data.trim().split(/\r\n|\r|\n/)
       , fragment = document.createDocumentFragment()
-      , i
-      , li
-      , a
-      , name
-      , size;
+      , i , li , a , name , size, tNode;
 
-
-    for(i = 0; i < str.length; i+=2) {
-      name = str[i];
-      size = str[i+1];
+    for(i = 0; i < data.length; i+=2) {
+      name = data[i];
+      size = data[i+1];
       li = document.createElement("li");
       a = document.createElement("a");
       a.href = "/chat/" + name;
       a.appendChild(document.createTextNode(name));
       li.appendChild(a);
-      li.appendChild(document.createTextNode(" (" + size + " subscribed users)"));
+      tNode = " (" + size + " subscribed users)";
+      li.appendChild(document.createTextNode(tNode));
       fragment.appendChild(li);
     }
-    while (channelList.firstChild) {
-      channelList.removeChild(channelList.firstChild);
+    while (rooms.firstChild) {
+      rooms.removeChild(rooms.firstChild);
     }
-    channelList.appendChild(fragment);
+    rooms.appendChild(fragment);
+    if (data.length > 1) {
+      document.getElementById("noRooms").remove()
+    } else {
+      rooms.insertBefore(noRooms, rooms.nextSibling)
+    }
   };
-
-
 
   form.addEventListener("submit", function(e){
     conn.send(input.value);

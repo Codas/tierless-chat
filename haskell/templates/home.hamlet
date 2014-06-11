@@ -4,15 +4,15 @@
   <strong>Currently available chat rooms:
 
 $if M.null rooms
-  <ul #channelList>
+  <ul #rooms>
   <p #noRooms> No rooms currently available
 $else
-  <ul #channelList>
+  <ul #rooms>
     $forall (name, size) <- roomInformation
       <li>
         <a href=@{ChatR name}>#{name}
         (#{size} subscribed users)
 
-<form #channelForm method=post action=@{HomeR} enctype=#{enctype} .form-inline>
+<form #cForm method=post action=@{HomeR} enctype=#{enctype} .form-inline>
   ^{widget}
   <button type="submit" .btn.btn-primary>Create Channel
